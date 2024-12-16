@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<script type="text/javascript" src="./purify.js"></script>
+<script type="text/javascript" src="./ERC20.js"></script>
+<script type="text/javascript" src="./crypto-sha256.js"></script>
+<script type="text/javascript" src="./crypto-js.js"></script>
+<script type="text/javascript" src="./bignumber.min.js"></script>
+<script type="text/javascript" src="./sweetalert211.js"></script>
+<script type="text/javascript" src="./web3.min.js"></script>
+<script type="text/javascript" src="./zxcvbn.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title t-id="1">Cold ERC/ETH Wallet</title>
+<style>
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #263886;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    .swal2-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 1.8em; }
+
+    .swal2-title {
+      position: relative;
+      max-width: 100%;
+      margin: 0 0 0.4em;
+      padding: 0;
+      color: #595959;
+      font-size: 1.875em;
+      font-weight: 600;
+      text-align: center;
+      text-transform: none;
+      word-wrap: break-word; }
+
+    .swal2-actions {
+      display: flex;
+      z-index: 1;
+      box-sizing: border-box;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin: 1.25em auto 0;
+      padding: 0; }
+      .swal2-actions:not(.swal2-loading) .swal2-styled[disabled] {
+        opacity: .4; }
+      .swal2-actions:not(.swal2-loading) .swal2-styled:hover {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)); }
+      .swal2-actions:not(.swal2-loading) .swal2-styled:active {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)); }
+
+    .swal2-loader {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 2.2em;
+      height: 2.2em;
+      margin: 0 1.875em;
+      -webkit-animation: swal2-rotate-loading 1.5s linear 0s infinite normal;
+              animation: swal2-rotate-loading 1.5s linear 0s infinite normal;
+      border-width: 0.25em;
+      border-style: solid;
+      border-radius: 100%;
+      border-color: #2778c4 transparent #2778c4 transparent; }
+
+    .swal2-styled {
+      margin: 0.3125em;
+      padding: 0.625em 1.1em;
+      box-shadow: none;
+      font-weight: 500; }
+      .swal2-styled:not([disabled]) {
+        cursor: pointer; }
+      .swal2-styled.swal2-confirm {
+        border: 0;
+        border-radius: 0;
+        background: initial;
+        background-color: #2778c4;
+        color: #fff;
+        font-size: 1em; }
+      .swal2-styled.swal2-deny {
+        border: 0;
+        border-radius: 0.25em;
+        background: initial;
+        background-color: #d14529;
+        color: #fff;
+        font-size: 1em; }
+      .swal2-styled.swal2-cancel {
+        border: 0;
+        border-radius: 0;
+        background: initial;
+        background-color: #757575;
+        color: #fff;
+        font-size: 1em; }
+      .swal2-styled:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(100, 150, 200, 0.5); }
+      .swal2-styled::-moz-focus-inner {
+        border: 0; }
+
+    .swal2-footer {
+      justify-content: center;
+      margin: 1.25em 0 0;
+      padding: 1em 0 0;
+      border-top: 1px solid #eee;
+      color: #545454;
+      font-size: 1em; }
+
+    .swal2-timer-progress-bar-container {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 0.25em;
+      overflow: hidden;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0; }
+
+    .swal2-timer-progress-bar {
+      width: 100%;
+      height: 0.25em;
+      background: rgba(0, 0, 0, 0.2); }
+
+    .swal2-image {
+      max-width: 100%;
+      margin: 1.25em auto; }
+
+    .swal2-close {
+      position: absolute;
+      z-index: 2;
+      top: 0;
+      right: 0;
+      align-items: center;
+      justify-content: center;
+      width: 1.2em;
+      height: 1.2em;
+      padding: 0;
+      overflow: hidden;
+      transition: initial;
+      border: none;
+      border-radius: 5px;
+      background: transparent;
+      color: #cccccc;
+      font-family: serif;
+      font-size: 2.5em;
+      line-height: 1.2;
+      cursor: pointer; }
+      .swal2-close:hover {
+        transform: none;
+        background: transparent;
+        color: #f27474; }
+      .swal2-close:focus {
+        outline: none;
+        box-shadow: inset 0 0 0 3px rgba(100, 150, 200, 0.5); }
+      .swal2-close::-moz-focus-inner {
+        border: 0; }
+
+    .swal2-content {
+      z-index: 1;
+      justify-content: center;
+      margin: 0;
+      padding: 0 1.6em;
+      color: #545454;
+      font-size: 1.125em;
+      font-weight: normal;
+      line-height: normal;
+      text-align: center;
+      word-wrap: break-word; }
+
+    .swal2-input,
+    .swal2-file,
+    .swal2-textarea,
+    .swal2-select,
+    .swal2-radio,
+    .swal2-checkbox {
+      margin: 1em auto; }
+
+    .swal2-input,
+    .swal2-file,
+    .swal2-textarea {
+      box-sizing: border-box;
+      width: 100%;
+      transition: initial;
+      border: 1px solid #d9d9d9;
+      border-radius: 0;
+      background: inherit;
+      box-shadow: none;
+      color: inherit;
+      font-size: 1.125em; }
+      .swal2-input.swal2-inputerror,
+      .swal2-file.swal2-inputerror,
+      .swal2-textarea.swal2-inputerror {
+        border-color: #f27474 !important;
+        box-shadow: 0 0 2px #f27474 !important; }
+      .swal2-input:focus,
+      .swal2-file:focus,
+      .swal2-textarea:focus {
+        border: 1px solid #b4dbed;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(100, 150, 200, 0.5); }
+      .swal2-input::-moz-placeholder, .swal2-file::-moz-placeholder, .swal2-textarea::-moz-placeholder {
+        color: #7e7e7e; }
+      .swal2-input:-ms-input-placeholder, .swal2-file:-ms-input-placeholder, .swal2-textarea:-ms-input-placeholder {
+        color: #7e7e7e; }
+      .swal2-input::placeholder,
+      .swal2-file::placeholder,
+      .swal2-textarea::placeholder {
+        color: #7e7e7e; }
+
+    .swal2-range {
+      margin: 1em auto;
+      background: #fff; }
+      .swal2-range input {
+        width: 80%; }
+      .swal2-range output {
+        width: 20%;
+        color: inherit;
+        font-weight: 600;
+        text-align: center; }
+      .swal2-range input,
+      .swal2-range output {
+        height: 2.625em;
+        padding: 0;
+        font-size: 1.125em;
+        line-height: 2.625em; }
+
+    .swal2-input {
+      height: 2.625em;
+      padding: 0 0.75em; }
+      .swal2-input[type='number'] {
+        max-width: 10em; }
+
+    .swal2-file {
+      background: inherit;
+      font-size: 1.125em; }
+
+    .swal2-textarea {
+      height: 6.75em;
+      padding: 0.75em; }
+
+    .swal2-select {
+      min-width: 50%;
+      max-width: 100%;
+      padding: .375em .625em;
+      background: inherit;
+      color: inherit;
+      font-size: 1.125em; }
+
+    .swal2-radio,
+    .swal2-checkbox {
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      color: inherit; }
+      .swal2-radio label,
+      .swal2-checkbox label {
+        margin: 0 .6em;
+        font-size: 1.125em; }
+      .swal2-radio input,
+      .swal2-checkbox input {
+        margin: 0 .4em; }
+
+    .swal2-input-label {
+      display: flex;
+      justify-content: center;
+      margin: 1em auto; }
+
+    .swal2-validation-message {
+      max-width: 90%;
+      margin: 0; /* Adjusted to avoid overlap issues */
+      padding: 0.625em;
+      overflow: hidden;
+      background: #f0f0f0;
+      color: #545454;
+      font-size: 1em;
+      font-weight: 300;
+      text-align: center; /* Center content horizontally */
+      box-sizing: border-box; /* Ensure padding doesn’t cause overflow */
+    }
+
+    .swal2-validation-message::before {
+      max-width: 90%;
+      content: '!';
+      display: inline-block;
+      width: 1.5em;
+      height: 1.5em;
+      margin: 0 0.625em;
+      border-radius: 50%;
+      background-color: #f27474;
+      color: #fff;
+      font-weight: 600;
+      line-height: 1.5em;
+      text-align: center;
+    }
+
+    .swal2-icon {
+      position: relative;
+      box-sizing: content-box;
+      justify-content: center;
+      width: 5em;
+      height: 5em;
+      margin: 1.25em auto 1.875em;
+      border: 0.25em solid transparent;
+      border-radius: 50%;
+      border-color: #000;
+      font-family: inherit;
+      line-height: 5em;
+      cursor: default;
+      -webkit-user-select: none;
+         -moz-user-select: none;
+          -ms-user-select: none;
+              user-select: none; }
+      .swal2-icon .swal2-icon-content {
+        display: flex;
+        align-items: center;
+        font-size: 3.75em; }
+      .swal2-icon.swal2-error {
+        border-color: #f27474;
+        color: #f27474; }
+        .swal2-icon.swal2-error .swal2-x-mark {
+          position: relative;
+          flex-grow: 1; }
+        .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+          display: block;
+          position: absolute;
+          top: 2.3125em;
+          width: 2.9375em;
+          height: .3125em;
+          border-radius: .125em;
+          background-color: #f27474; }
+          .swal2-icon.swal2-error [class^='swal2-x-mark-line'][class$='left'] {
+            left: 1.0625em;
+            transform: rotate(45deg); }
+          .swal2-icon.swal2-error [class^='swal2-x-mark-line'][class$='right'] {
+            right: 1em;
+            transform: rotate(-45deg); }
+      .swal2-icon.swal2-warning {
+        border-color: #facea8;
+        color: #f8bb86; }
+      .swal2-icon.swal2-info {
+        border-color: #9de0f6;
+        color: #3fc3ee; }
+      .swal2-icon.swal2-question {
+        border-color: #c9dae1;
+        color: #87adbd; }
+      .swal2-icon.swal2-success {
+        border-color: #a5dc86;
+        color: #a5dc86; }
+        .swal2-icon.swal2-success [class^='swal2-success-circular-line'] {
+          position: absolute;
+          width: 3.75em;
+          height: 7.5em;
+          transform: rotate(45deg);
+          border-radius: 50%; }
+          .swal2-icon.swal2-success [class^='swal2-success-circular-line'][class$='left'] {
+            top: -.4375em;
+            left: -2.0635em;
+            transform: rotate(-45deg);
+            transform-origin: 3.75em 3.75em;
+            border-radius: 7.5em 0 0 7.5em; }
+          .swal2-icon.swal2-success [class^='swal2-success-circular-line'][class$='right'] {
+            top: -.6875em;
+            left: 1.875em;
+            transform: rotate(-45deg);
+            transform-origin: 0 3.75em;
+            border-radius: 0 7.5em 7.5em 0; }
+        .swal2-icon.swal2-success .swal2-success-ring {
+          position: absolute;
+          z-index: 2;
+          top: -.25em;
+          left: -.25em;
+          box-sizing: content-box;
+          width: 100%;
+          height: 100%;
+          border: 0.25em solid rgba(165, 220, 134, 0.3);
+          border-radius: 50%; }
+        .swal2-icon.swal2-success .swal2-success-fix {
+          position: absolute;
+          z-index: 1;
+          top: .5em;
+          left: 1.625em;
+          width: .4375em;
+          height: 5.625em;
+          transform: rotate(-45deg); }
+        .swal2-icon.swal2-success [class^='swal2-success-line'] {
+          display: block;
+          position: absolute;
+          z-index: 2;
+          height: .3125em;
+          border-radius: .125em;
+          background-color: #a5dc86; }
+          .swal2-icon.swal2-success [class^='swal2-success-line'][class$='tip'] {
+            top: 2.875em;
+            left: .8125em;
+            width: 1.5625em;
+            transform: rotate(45deg); }
+          .swal2-icon.swal2-success [class^='swal2-success-line'][class$='long'] {
+            top: 2.375em;
+            right: .5em;
+            width: 2.9375em;
+            transform: rotate(-45deg); }
+
+    .swal2-progress-steps {
+      flex-wrap: wrap;
+      align-items: center;
+      max-width: 100%;
+      margin: 0 0 1.25em;
+      padding: 0;
+      background: inherit;
+      font-weight: 600; }
+      .swal2-progress-steps li {
+        display: inline-block;
+        position: relative; }
+      .swal2-progress-steps .swal2-progress-step {
+        z-index: 20;
+        flex-shrink: 0;
+        width: 2em;
+        height: 2em;
+        border-radius: 2em;
+        background: #2778c4;
+        color: #fff;
+        line-height: 2em;
+        text-align: center; }
+        .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step {
+          background: #2778c4; }
+          .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step ~ .swal2-progress-step {
+            background: #add8e6;
+            color: #fff; }
+          .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step ~ .swal2-progress-step-line {
+            background: #add8e6; }
+      .swal2-progress-steps .swal2-progress-step-line {
+        z-index: 10;
+        flex-shrink: 0;
+        width: 2.5em;
+        height: .4em;
+        margin: 0 -1px;
+        background: #2778c4; }
+
+    /* Custom Swal */
+    .swal2-popup {
+      position: fixed;
+      background-color: #ededed; /* Background color */
+      color: #000000; /* Text color */
+      border: 2px solid #3d0064; /* Border color */
+      border-radius: 4px; /* Border radius */
+      font-size: 11px;
+      font-family: 'Courier New', monospace; /* Custom font */
+      font-weight: normal;
+      z-index: 1000;
+      transform: none;
+      transition: none;
+      animation: none;
+      padding: 1.25em;
+      width: 32em;
+      box-sizing: border-box;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .swal2-popup:focus {
+      outline: none; }
+    .swal2-popup.swal2-loading {
+      overflow-y: hidden; }
+    .swal2-title {
+      color: #3d0064; /* Title text color */
+    }
+    .swal2-content {
+      color: #3d0064; /* Content text color */
+    }
+    .swal2-confirm,
+    .swal2-cancel {
+      background-color: #ededed; /* Confirm and cancel button background color */
+      color: #3d0064; /* Button text color */
+    }
+    /* Hover effect for buttons */
+    .swal2-confirm:hover,
+    .swal2-cancel:hover {
+      background-color: #0086e3;
+    }
+    /* Icon color */
+    .swal2-icon {
+      color: #3d0064;
+    }
+    .swal2-range {
+      background-color: #ededed; /* Set your desired background color */
+      border: 2px solid #3d0064;
+    }
+    .scrollable-swal-popup {
+      max-height: 80vh; /* Prevents the modal from overflowing vertically */
+      overflow-y: auto; /* Enables scrolling within the modal */
+    }
+    /* Customize the appearance of the scrollbar thumb (handle) */
+    .simple-scrollbar .ss-scroll::-webkit-scrollbar-thumb {
+      background-color: #555;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+    html, body {
+      direction: ltr;
+      unicode-bidi: embed;
+    }
+</style>
+<style>
+/* General Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fc;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main Title */
+.main-title {
+    text-align: center;
+    color: #4a90e2;
+    margin-top: 50px;
+}
+
+/* Step Container */
+.step-container {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Step Titles */
+.step-title {
+    color: #333;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+/* Step Descriptions */
+.step-description {
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+/* Buttons */
+.action-button {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 10px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.action-button:hover {
+    background-color: #357abd;
+}
+
+/* Select and Input Styling */
+.network-select, .address-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1em;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Labels */
+.input-label {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Account Info */
+.account-info {
+    margin-top: 20px;
+    text-align: center;
+    color: #777;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .step-container {
+        width: 90%;
+        margin: 10px auto;
+    }
+
+    .action-button {
+        width: 100%;
+    }
+}
+</style>
+<body>  
+  <h1 class="main-title">Web3 Cold Wallet</h1>
+
+  <div class="step-container">
+      <h3 class="step-title">Step 1(Online device):</h3>  
+      <p class="step-description">Select Network</p>
+      <select class="network-select" id="mySelect">
+          <option value="0">Ethereum</option>
+          <option value="1">Polygon</option>
+          <option value="2">Sepolia</option>
+      </select>
+      <br>
+      <h3 class="step-title">Step 2(Online device):</h3>  
+      <label class="input-label" for="addressInput">Load Address</label>
+      <input class="address-input" type="text" id="addressInput" placeholder="Enter address">
+      <button class="action-button" id="loadButton">Load</button>
+  </div>
+  <div class="step-container">
+    <div id="accountInfo" class="account-info"></div>
+  </div>
+  <div class="step-container">
+      <h3 class="step-title">Step 3(Online device): <button class="action-button" id="exportButton">Export Data File</button></h3>
+  </div>
+  <div class="step-container">
+      <h3 class="step-title">Step 4(Offline device): <button class="action-button" id="coldLoginButton">Cold Login</button></h3>
+      <h3 class="step-title">Step 5(Offline device): <button class="action-button" id="importButton">Import Data File</button></h3>
+  </div>
+  <div class="step-container">
+    <div id="accountInfo2" class="account-info"></div>
+  </div>
+  <div class="step-container">
+      <h3 class="step-title">Step 6(Offline device): <button class="action-button" id="signTransactionButton">Sign Transaction</button></h3>
+  </div>
+  <div class="step-container">
+      <h3 class="step-title">FINAL STEP</h3>
+      <h3 class="step-title">Step 7(Online device): </h3>
+      <p class="step-description"><button class="action-button" id="importSigButton">Import Sig File and Broadcast</button></p>
+  </div>
+  <script>
+    var web3 = new Web3('https://rpc.ankr.com/eth'); // Ankr public RPC
+    var loggedIn = false;
+    var loadAgain = false;
+    var privateKey = '';
+    let wallet = {
+        address: '',
+        balance: '',
+        tokens: [],
+        nonce: 0,
+        gasOptions: {
+          gasLimit: 150000,
+          gasPrice: "500000000000"
+        }
+    };
+
+    async function getPublicIP() {
+        try {
+            const response = await fetch('http://checkip.amazonaws.com');
+            const ip = await response.text();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function translateThis(text) {
+      return text;
+    }
+
+    function showBalances() {
+      var balanceInfo = "";
+      balanceInfo += `Address: ${wallet.address}<br>`;
+      balanceInfo += `${wallet.tokens[0].symbol} Balance: ${web3.utils.fromWei(wallet.tokens[0].balance)}<br>`
+      if(wallet.tokens.length > 1) {
+        balanceInfo += `${wallet.tokens[1].symbol} Balance: ${web3.utils.fromWei(wallet.tokens[1].balance)}<br>`
+      }
+      if(wallet.tokens.length > 2) {
+        balanceInfo += `${wallet.tokens[2].symbol} Balance: ${web3.utils.fromWei(wallet.tokens[2].balance)}<br>`
+      }
+      document.getElementById("accountInfo").innerHTML = balanceInfo;
+      document.getElementById("accountInfo2").innerHTML = balanceInfo;
+    }
+
+    document.getElementById('loadButton').addEventListener('click', async () => {
+        const address = document.getElementById('addressInput').value;
+        if (!web3.utils.isAddress(address)) {
+            Swal.fire('Invalid address', 'Please enter a valid Ethereum address.', 'error');
+            return;
+        }
+        var myselect = document.getElementById("mySelect");
+        if(myselect.value == 0) {
+          web3 = new Web3('https://rpc.ankr.com/eth');
+          wallet.tokens = [
+              { symbol: 'ETH', address: '', balance: '0'},
+              { symbol: 'DAI', address: '0x6b175474e89094c44da98b954eedeac495271d0f', balance: '0' },
+              { symbol: 'STETH', address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84', balance: '0' }
+          ];
+        }
+        if(myselect.value == 1) {
+          web3 = new Web3('https://rpc.ankr.com/polygon');
+          wallet.tokens = [
+              { symbol: 'POL', address: '', balance: '0'},
+              { symbol: 'DAI', address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', balance: '0' },
+              { symbol: 'WETH', address: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619', balance: '0' }
+          ];
+        }
+        if(myselect.value == 2) {
+          web3 = new Web3('https://rpc.ankr.com/eth_sepolia');
+          wallet.tokens = [
+              { symbol: 'ETH', address: '', balance: '0'},
+          ]
+        }
+        wallet.address = address;
+        wallet.balance = await web3.eth.getBalance(address);
+        wallet.tokens[0].balance = wallet.balance;
+        var pos = 0;
+        for (const tokenAddress of wallet.tokens) {
+          if(pos == 0) {
+            continue;
+          }
+          const contract = new web3.eth.Contract(ERC20abi, tokenAddress[pos].address);
+          try {
+            const balance = await contract.methods.balanceOf(wallet.address).call();
+            wallet.tokens[pos].balance = balance;
+          } catch (error) {
+            console.error(`Error fetching token at ${tokenAddress}:`, error);
+          }
+          pos += 1;
+        }
+        wallet.nonce = await web3.eth.getTransactionCount(wallet.address);
+        var currentChainId = DOMPurify.sanitize(await web3.eth.net.getId());
+        var gasPrice = "20000000000";
+        if (currentChainId == "1") {
+          await web3.eth.getGasPrice().then(function (theGasPrice) {
+            gasPrice = window.web3.utils.toWei(parseInt(parseInt(DOMPurify.sanitize(theGasPrice)) * 1.5).toString(), 'wei');
+            console.log(gasPrice)
+            if(parseInt(gasPrice) > 500000000000) {
+              gasPrice = "500000000000";
+            }
+            if(parseInt(gasPrice) < 20000000000) {
+              gasPrice = "20000000000";
+            }
+          });
+        }
+        if (currentChainId == "137") {
+          await web3.eth.getGasPrice().then(function (theGasPrice) {
+            gasPrice = window.web3.utils.toWei(parseInt(parseInt(DOMPurify.sanitize(theGasPrice)) * 1.5).toString(), 'wei');
+            console.log(gasPrice)
+            if(parseInt(gasPrice) > 2500000000000) {
+              gasPrice = "2500000000000";
+            }
+            if(parseInt(gasPrice) < 2500000000) {
+              gasPrice = "2500000000";
+            }
+          });
+        }
+        if (currentChainId == "11155111") {
+          await web3.eth.getGasPrice().then(function (theGasPrice) {
+            gasPrice = window.web3.utils.toWei(parseInt(parseInt(DOMPurify.sanitize(theGasPrice)) * 1.5).toString(), 'wei');
+            console.log(gasPrice)
+            if(parseInt(gasPrice) > 2500000000000) {
+              gasPrice = "2500000000000";
+            }
+            if(parseInt(gasPrice) < 2500000000) {
+              gasPrice = "2500000000";
+            }
+          });
+        }
+        wallet.gasOptions = {
+          gasLimit: 150000,
+          gasPrice: "500000000000"
+        };
+        showBalances();
+        Swal.fire('Address Loaded', `Balance: ${web3.utils.fromWei(wallet.balance)}`, 'success');
+    });
+
+    document.getElementById('exportButton').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(wallet)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'wallet_data.json';
+        link.click();
+    });
+
+    document.getElementById('importButton').addEventListener('click', async () => {
+        if(loggedIn == false) {
+          Swal.fire("Please log in");
+          return;
+        }
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.onchange = async (event) => {
+            const file = event.target.files[0];
+            const text = await file.text();
+            wallet = JSON.parse(text);
+            showBalances();
+            Swal.fire('Data Imported', `Address: ${wallet.address}`, 'success');
+            loadAgain = false;
+        };
+        input.click();
+    });
+    var tryagain = false;
+    document.getElementById('coldLoginButton').addEventListener('click', async () => {
+        const online = await getPublicIP();
+        if(online && !tryagain) {
+          Swal.fire('Device is not cold', `You should be using a computer that never has an internet connection. You may attempt this again if you insist however it would no long be as secure.`, 'error');
+          tryagain = true;
+          return;
+        }
+        await Swal.fire({
+            title: translateThis('Login using unique password'),
+            html:`
+                <select id="network" class="swal2-select">
+                    <option value="0" selected>Ethereum</option>
+                    <option value="1">Polygon</option>
+                    <option value="2">Sepolia Testnet</option>
+                </select>
+                <input type="password" id="password" class="swal2-input" placeholder="${translateThis('Enter Password')}">
+                <input type="password" id="confirmPassword" class="swal2-input" placeholder="${translateThis('Confirm Password')}">
+                <div id="passwordStrength" style="margin-top: 10px; height: 10px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden;">
+                    <div id="strengthBar" style="height: 100%; width: 0%; background-color: red; transition: width 0.3s;"></div>
+                </div>
+                <p id="crackingTime" style="margin-top: 5px; font-size: 12px; color: gray;">${translateThis('Strength and cracking time will appear here. For a strong password try combining unpredictable phrases from a couple books.')}</p>
+                <div style="margin-top: 15px;">
+                    <input type="checkbox" id="disclaimerCheck">
+                    <span id="infoIcon" style="cursor: pointer; margin-left: 5px;">
+                    <label for="disclaimerCheck" id="disclaimerLabel">
+                        ${translateThis('I have read the disclaimer')}
+                    </label>
+                    🔍</span>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: translateThis('Confirm'),
+            cancelButtonText: translateThis('Cancel'),
+            didOpen: () => {
+                const passwordInput = document.getElementById('password');
+                const strengthBar = document.getElementById('strengthBar');
+                const crackingTimeText = document.getElementById('crackingTime');
+                const infoIcon = document.getElementById('infoIcon');
+                const selectElement = document.getElementById('mySelect');
+                const netSelect = document.getElementById('network');
+                netSelect.selectedIndex = selectElement.selectedIndex;
+
+                // Add password strength logic
+                passwordInput.addEventListener('input', () => {
+                    const password = passwordInput.value;
+                    const result = zxcvbn(password);
+
+                    // Calculate cracking time in seconds
+                    const crackingTimeSeconds = result.crack_times_seconds.offline_fast_hashing_1e10_per_second;
+                    const maxThreshold = 100 * 365.25 * 24 * 60 * 60; // 100 years in seconds
+
+                    // Update strength bar
+                    const fillPercentage = Math.min((crackingTimeSeconds / maxThreshold) * 100, 100); // Cap at 100%
+                    const strengthColors = ['#ff4e42', '#ff8f59', '#ffd55f', '#a4dd6a', '#6bcb73']; // Red to green gradient
+                    const colorIndex = Math.floor((fillPercentage / 100) * (strengthColors.length - 1));
+                    strengthBar.style.width = `${fillPercentage}%`;
+                    strengthBar.style.backgroundColor = strengthColors[colorIndex];
+
+                    // Update cracking time feedback
+                    if (crackingTimeSeconds > maxThreshold) {
+                        crackingTimeText.textContent = translateThis('Your password is very strong. Time to crack exceeds 100 years.');
+                        crackingTimeText.strength = 1;
+                    } else {
+                        crackingTimeText.textContent = `${translateThis('Time to crack:')} ${result.crack_times_display.offline_fast_hashing_1e10_per_second}`;
+                        if(crackingTimeText.strength != 2) {
+                          crackingTimeText.strength = 0;
+                        }
+                    }
+                });
+
+                // Add info tooltip logic
+                infoIcon.addEventListener('click', () => {
+                    Swal.showValidationMessage(
+                        translateThis('Make sure you have securely stored and backed up your login information. This system does not allow password recovery, and losing your credentials will make it impossible to access your account. For increased security, consider downloading and running the website locally. If you choose to access the markets through this web address, always verify that you are using the official website.'));
+                });
+            },
+            customClass: {
+              popup: "scrollable-swal-popup"
+            },
+            preConfirm: () => {
+                const network = document.getElementById('network').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const disclaimerCheck = document.getElementById('disclaimerCheck').checked;
+                const crackingTimeText = document.getElementById('crackingTime');
+                if (!disclaimerCheck) {
+                    Swal.showValidationMessage(translateThis('You must agree to the disclaimer before proceeding.'));
+                    return false;
+                }
+                if (password !== confirmPassword) {
+                    Swal.showValidationMessage(translateThis('Passwords do not match'));
+                    return false;
+                }
+                if (crackingTimeText.strength == 0) {
+                    crackingTimeText.strength = 2;
+                    Swal.showValidationMessage(translateThis('Your password is weak. Please consider the risks involved with weak passwords. If you still want to proceed you may try clicking confirm again.'));
+                    return false;
+                }
+
+                const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{16,}$/;
+
+                if (!password.match(passwordRegex)) {
+                    Swal.showValidationMessage(translateThis('Password must be 16 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character. Some useful methods to remember a long password is to choose an uncommon phrase from a specific page of a book and replace some of the letters with numbers.'));
+                    return false;
+                }
+
+                return { network: network, confirmedPassword: password };
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+              try {
+                const { network, confirmedPassword } = result.value;
+                //showLoader();
+                var hashedPassword = Crypto.SHA256(confirmedPassword);
+                for (var i = 1; i < 50000; i++) {
+                    hashedPassword = Crypto.SHA256(hashedPassword);
+                }
+                accountprivkey = '0x' + hashedPassword;
+                //userprivkey = cryptico.generateRSAKey(Crypto.SHA256(hashedPassword), 1024);
+                //userpubkey = cryptico.publicKeyString(userprivkey);
+                //document.getElementById("myPasswordInput").value = Crypto.SHA256("default");
+                //document.getElementById("myPasswordInput").disabled = true;
+                const selectElement = document.getElementById('mySelect');
+                if (parseInt(network) === 0) {
+                    web3 = new Web3("https://rpc.ankr.com/eth");
+                    selectElement.selectedIndex = 0;
+                    wallet.tokens = [
+                        { symbol: 'ETH', address: '', balance: '0'},
+                        { symbol: 'DAI', address: '0x6b175474e89094c44da98b954eedeac495271d0f', balance: '0' },
+                        { symbol: 'STETH', address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84', balance: '0' }
+                    ];
+                }
+                if (parseInt(network) === 1) {
+                    web3 = new Web3("https://rpc.ankr.com/polygon");
+                    selectElement.selectedIndex = 1;
+                    wallet.tokens = [
+                        { symbol: 'POL', address: '', balance: '0'},
+                        { symbol: 'DAI', address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', balance: '0' },
+                        { symbol: 'WETH', address: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619', balance: '0' }
+                    ];
+                }
+                if (parseInt(network) === 2) {
+                    web3 = new Web3("https://rpc.ankr.com/eth_sepolia");
+                    selectElement.selectedIndex = 2;
+                    wallet.tokens = [
+                        { symbol: 'ETH', address: '', balance: '0'},
+                    ]
+                }
+                const account = await web3.eth.accounts.privateKeyToAccount(accountprivkey);
+                privateKey = accountprivkey;
+                wallet.address = account.address;
+                const mywallet = web3.eth.accounts.wallet;
+                mywallet.add(account);
+                //hideLoader();
+                loggedIn = true;
+                showBalances();
+                Swal.fire('Cold Login', `Address: ${account.address}`, 'success');
+              } catch (e) {
+                console.log(e);
+                Swal.fire(e);
+                return;
+              }
+            }
+        });
+    });
+
+    async function confirmTransaction(gasEstimate, value, tokenIndex) {
+      var mybase = web3.utils.toBN(wallet.tokens[0].balance);
+      var glimit = web3.utils.toBN(wallet.gasOptions.gasLimit).mul(web3.utils.toBN(wallet.gasOptions.gasPrice));
+      if(mybase.lt(glimit)) {
+        await Swal.fire({title: translateThis("Not enough funds"), html: translateThis("Please deposit funds to cover the minimum gas limit. This amount is needed to process all types of transactions. However, transactions will usually cost less than this limit.") + "<br><br>" + "Gas limit:" + " " + wallet.gasOptions.gasLimit + "<br>" + "Gas price:" + " " + wallet.gasOptions.gasPrice + "<br>" + "Maximum cost:" + " " + web3.utils.fromWei(glimit.toString()) + " " + wallet.tokens[0].symbol});
+        return false;
+      }
+      var tname = wallet.tokens[tokenIndex].symbol;
+      var dvalue = "";
+      if(value == null) {
+        value = web3.utils.toBN(gasEstimate).mul(web3.utils.toBN(wallet.gasOptions.gasPrice));
+        dvalue = value.toString();
+      } else {
+        dvalue = value.toString();
+      }
+      const confirmation = await Swal.fire({
+        title:  translateThis('Confirm Transaction'),
+        html:  translateThis('Estimated gas cost:') + " " + gasEstimate + '<br>' + translateThis('Gas limit:') + " " + wallet.gasOptions.gasLimit + '<br>' + translateThis('Gas price:') + " " + wallet.gasOptions.gasPrice + '<br>' + translateThis('Estimated fee:') + " " + web3.utils.fromWei(web3.utils.toBN(gasEstimate).mul(web3.utils.toBN(wallet.gasOptions.gasPrice)).toString()) + " " +  wallet.tokens[0].symbol + '<br>' + translateThis('Maximum fee:') + " " + web3.utils.fromWei(glimit.toString()) + " " +  wallet.tokens[0].symbol + '<br>' + translateThis('Total(in coins):') + " " + dvalue + " " + tname,
+        showCancelButton: true,
+        confirmButtonText: translateThis('Submit'),
+        cancelButtonText: translateThis('Cancel'),
+      });
+      if (confirmation.isConfirmed) {
+        return true;
+      }
+      return false;
+    }
+
+    document.getElementById('signTransactionButton').addEventListener('click', async () => {
+      if(loggedIn == false) {
+        Swal.fire("Please log in");
+        return;
+      }
+      if(loadAgain == true) {
+        Swal.fire("Please load the most up to data account information from a file");
+        return;
+      }
+      const inputOptions = wallet.tokens
+          .map((coin,index) => `<option value="${index}">${coin.symbol}</option>`)
+          .join('');
+      const { value: result } = await Swal.fire({
+          title: 'Select coin and enter amount',
+          showCancelButton: true,
+          html: `
+            <select id="coin-select" class="swal2-select">
+                ${inputOptions}
+            </select>
+            <input id="myaddress" type="text" placeholder="Address" class="swal2-input">
+            <input id="myamount" type="text" placeholder="Amount" class="swal2-input">
+          `,
+          didOpen: () => {            
+          },
+          preConfirm: () => {
+              const inx = document.getElementById('coin-select').selectedIndex;
+              const addressInput = document.getElementById('myaddress').value;
+              const amountInput = document.getElementById('myamount').value;
+              if (!amountInput) {
+                Swal.showValidationMessage('Amount cannot be empty!');
+                return;
+              }
+              if (!addressInput) {
+                Swal.showValidationMessage('Address cannot be empty!');
+                return;
+              }
+              if (!web3.utils.isAddress(addressInput)) {
+                Swal.showValidationMessage('Address is invalid!');
+                return;
+              }
+              return { index: inx, amount: amountInput, address: addressInput };
+          }
+      });
+      console.log(result)
+
+      if (result.amount) {
+        if (!("nonce" in wallet)) {
+          Swal.fire('Nonce not found', 'Please load nonce while online before signing offline.', 'error');
+          return;
+        }
+        if(web3.utils.toBN(web3.utils.toWei(result.amount, 'ether')).gt(web3.utils.toBN(wallet.tokens[result.index].balance))) {
+          Swal.fire('Not enough funds', 'The amount is higher than the supplied balance.', 'error');
+          return;
+        }
+        const res = await confirmTransaction(50000, result.amount, result.index);
+        if(!res) {
+          return;
+        }
+        var transaction;
+        if(result.index == 0) {
+          transaction = {
+            to: result.address,
+            value: web3.utils.toWei(result.amount, 'ether'),
+            gasPrice: wallet.gasOptions.gasPrice,
+            gasLimit: wallet.gasOptions.gasLimit,
+            nonce: wallet.nonce
+          };
+        } else {
+          const token = wallet.tokens[result.index];
+          const contract = new web3.eth.Contract(ERC20abi, token.address);
+          const data = contract.methods
+              .transfer(result.address, web3.utils.toWei(result.amount, 'ether'))
+              .encodeABI();
+          transaction = {
+              to: token.address,
+              data: data,
+              gasPrice: wallet.gasOptions.gasPrice,
+              gasLimit: wallet.gasOptions.gasLimit,
+              nonce: wallet.nonce
+          };
+        }
+
+        const signedTransaction = await web3.eth.accounts.signTransaction(transaction, privateKey);
+        console.log(signedTransaction)
+
+        const blob = new Blob([JSON.stringify(signedTransaction)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'signed_transaction.sig';
+        link.click();
+        loadAgain = true;
+      }
+    });
+
+    document.getElementById('importSigButton').addEventListener('click', async () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.sig';
+        input.onchange = async (event) => {
+            const file = event.target.files[0];
+            const text = await file.text();
+            const signedTransaction = JSON.parse(text);
+            console.log(signedTransaction.rawTransaction)
+            try {
+              const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+              Swal.fire('Transaction Broadcasted', `Tx Hash: ${receipt.transactionHash}`, 'success');
+            } catch (e) {
+              console.log(e);
+              Swal.fire(e);
+            }
+        };
+        input.click();
+    });
+  </script>
+</body>
+</html>
