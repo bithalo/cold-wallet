@@ -7,6 +7,7 @@
 <script type="text/javascript" src="./sweetalert211.js"></script>
 <script type="text/javascript" src="./web3.min.js"></script>
 <script type="text/javascript" src="./zxcvbn.js"></script>
+<script type="text/javascript" src="./ethers-5.7.2.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title t-id="1">Cold ERC/ETH Wallet</title>
@@ -1045,7 +1046,18 @@ body {
           }
       });
       console.log(result)
-
+      const selectElement = document.getElementById('mySelect').selectedIndex;
+      var chainID;
+      const wallet1 = new ethers.Wallet(privateKey)
+      if (parseInt(selectElement) === 0) {
+        chainID = 1;
+      }
+      if (parseInt(selectElement) === 1) {
+        chainID = 137;
+      }
+      if (parseInt(selectElement) === 2) {
+        chainID = 11155111;
+      }
       if (result.amount) {
         if (!("nonce" in wallet)) {
           Swal.fire('Nonce not found', 'Please load nonce while online before signing offline.', 'error');
@@ -1063,10 +1075,11 @@ body {
         if(result.index == 0) {
           transaction = {
             to: result.address,
-            value: web3.utils.toWei(result.amount, 'ether'),
-            gasPrice: wallet.gasOptions.gasPrice,
-            gasLimit: wallet.gasOptions.gasLimit,
-            nonce: wallet.nonce
+            value: ethers.utils.parseEther(result.amount),
+            gasPrice: ethers.BigNumber.from(wallet.gasOptions.gasPrice),
+            gasLimit: ethers.BigNumber.from(wallet.gasOptions.gasLimit),
+            nonce: wallet.nonce,
+            chainId: chainID
           };
         } else {
           const token = wallet.tokens[result.index];
@@ -1077,16 +1090,23 @@ body {
           transaction = {
               to: token.address,
               data: data,
-              gasPrice: wallet.gasOptions.gasPrice,
-              gasLimit: wallet.gasOptions.gasLimit,
-              nonce: wallet.nonce
+              gasPrice: ethers.BigNumber.from(wallet.gasOptions.gasPrice),
+              gasLimit: ethers.BigNumber.from(wallet.gasOptions.gasLimit),
+              nonce: wallet.nonce,
+              chainId: chainID
           };
         }
-
-        const signedTransaction = await web3.eth.accounts.signTransaction(transaction, privateKey);
+        console.log(transaction);
+        const rawTx = ethers.utils.serializeTransaction(transaction);
+        console.log(ethers.utils.parseTransaction(rawTx));
+        const signingKey = new ethers.utils.SigningKey(privateKey);
+        const signature = signingKey.signDigest(ethers.utils.keccak256(rawTx));
+        const signedTransaction = ethers.utils.serializeTransaction(transaction, signature);
+        //const signedTransaction = await wallet1.signTransaction(transaction);
+        mytx={"rawTransaction":signedTransaction};
         console.log(signedTransaction)
 
-        const blob = new Blob([JSON.stringify(signedTransaction)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(mytx)], { type: 'application/json' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = 'signed_transaction.sig';
