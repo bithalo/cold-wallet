@@ -655,7 +655,7 @@ body {
         nonce: 0,
         gasOptions: {
           gasLimit: 150000,
-          gasPrice: "500000000000"
+          gasPrice: "2500000000"
         }
     };
 
@@ -743,8 +743,8 @@ body {
             if(parseInt(gasPrice) > 500000000000) {
               gasPrice = "500000000000";
             }
-            if(parseInt(gasPrice) < 20000000000) {
-              gasPrice = "20000000000";
+            if(parseInt(gasPrice) < 2500000000) {
+              gasPrice = "2500000000";
             }
           });
         }
@@ -774,7 +774,7 @@ body {
         }
         wallet.gasOptions = {
           gasLimit: 150000,
-          gasPrice: "500000000000"
+          gasPrice: gasPrice
         };
         showBalances();
         Swal.fire('Address Loaded', `Balance: ${web3.utils.fromWei(wallet.balance)}`, 'success');
