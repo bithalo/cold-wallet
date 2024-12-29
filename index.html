@@ -722,9 +722,10 @@ body {
         var pos = 0;
         for (const tokenAddress of wallet.tokens) {
           if(pos == 0) {
+            pos += 1;
             continue;
           }
-          const contract = new web3.eth.Contract(ERC20abi, tokenAddress[pos].address);
+          const contract = new web3.eth.Contract(ERC20abi, wallet.tokens[pos].address);
           try {
             const balance = await contract.methods.balanceOf(wallet.address).call();
             wallet.tokens[pos].balance = balance;
