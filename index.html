@@ -644,7 +644,7 @@ body {
       <p class="step-description"><button class="action-button" id="importSigButton">Import Sig File and Broadcast</button></p>
   </div>
   <script>
-    var web3 = new Web3('https://1rpc.io/eth'); // public RPC
+    var web3 = new Web3('https://eth-mainnet.public.blastapi.io'); // public RPC
     var loggedIn = false;
     var loadAgain = false;
     var privateKey = '';
@@ -695,7 +695,7 @@ body {
         }
         var myselect = document.getElementById("mySelect");
         if(myselect.value == 0) {
-          web3 = new Web3('https://1rpc.io/eth');
+          web3 = new Web3('https://eth-mainnet.public.blastapi.io');
           wallet.tokens = [
               { symbol: 'ETH', address: '', balance: '0'},
               { symbol: 'DAI', address: '0x6b175474e89094c44da98b954eedeac495271d0f', balance: '0' },
@@ -703,7 +703,7 @@ body {
           ];
         }
         if(myselect.value == 1) {
-          web3 = new Web3('https://1rpc.io/matic');
+          web3 = new Web3('https://polygon-mainnet.public.blastapi.io');
           wallet.tokens = [
               { symbol: 'POL', address: '', balance: '0'},
               { symbol: 'DAI', address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', balance: '0' },
@@ -933,7 +933,7 @@ body {
                 //document.getElementById("myPasswordInput").disabled = true;
                 const selectElement = document.getElementById('mySelect');
                 if (parseInt(network) === 0) {
-                    web3 = new Web3("https://1rpc.io/eth");
+                    web3 = new Web3("https://eth-mainnet.public.blastapi.io");
                     selectElement.selectedIndex = 0;
                     wallet.tokens = [
                         { symbol: 'ETH', address: '', balance: '0'},
@@ -942,7 +942,7 @@ body {
                     ];
                 }
                 if (parseInt(network) === 1) {
-                    web3 = new Web3("https://1rpc.io/matic");
+                    web3 = new Web3("https://polygon-mainnet.public.blastapi.io");
                     selectElement.selectedIndex = 1;
                     wallet.tokens = [
                         { symbol: 'POL', address: '', balance: '0'},
